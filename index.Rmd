@@ -181,6 +181,7 @@ correlation
 fdat <- fdat %>%
   dplyr::filter(date >= "2022-03-01")
 
+
 sum <- sum(fdat$n,na.rm = TRUE)
 
 fig <- plot_ly()
@@ -189,8 +190,8 @@ fig <- fig %>% add_trace(x = ~fdat$date, y = ~fdat$grip, name = "Credit Suisse S
                          type = "scatter", 
                          marker=list(symbol = 'x',
                                       size = 3,
-                                      opacity = 0.5, line = 
-                                        list(width = 1, color = "black")),
+                                      opacity = 1, line = 
+                                        list(width = 1, color = "steelblue")),
                           line = list(color = "steelblue")
                          )
 
@@ -200,10 +201,10 @@ ay <- list(
   side = "right",
   title = "<b>Sentiment</b>")
 
-fig <- fig %>% add_trace(x = ~fdat$date, y = ~fdat$sentstandard, name = "Sentiment on Twitter", yaxis = "y2", mode = "lines+markers", type = "scatter", marker=list(color = "black", symbol = 'triangle-up',
+fig <- fig %>% add_trace(x = ~fdat$date, y = ~fdat$sentstandard, name = "Sentiment on Twitter", yaxis = "y2", mode = "lines+markers", type = "scatter", marker=list(color = "firebrick", symbol = 'triangle-up',
                                       size = 3,
-                                      opacity = 0.5, line = 
-                                        list(width = 1, color = "black")),
+                                      opacity = 1, line = 
+                                        list(width = 1, color = "firebrick")),
         line = list(color = "firebrick"))
 
 # Set figure title, x and y-axes titles
@@ -229,6 +230,31 @@ fig <- fig %>% layout(
         width = 1000, height = 800, autosize = F
         ) 
 
+fig <- fig %>% add_annotations(x=as.Date("2022-09-22"), y=-12,
+            text="Rumours about capital hike",
+            showarrow=T,
+            arrowhead=1,
+            ax=-100)
+
+fig <- fig %>% add_annotations(x=as.Date("2022-10-02"), y=-20,
+            text="New rumours about capital hike",
+            showarrow=T,
+            arrowhead=1, ax = -100)
+
+fig <- fig %>% add_annotations(x=as.Date("2022-10-27"), y=-24,
+            text="Confirmation capital raise and strategy release",
+            showarrow=T,
+            arrowhead=1, ax = 100)
+
+fig <- fig %>% add_annotations(x=as.Date("2022-11-01"), y=-12.3,
+            text="S&P donwgraded CS",
+            showarrow=T,
+            arrowhead=1, ax = 100)
+
+fig <- fig %>% add_annotations(x=as.Date("2023-03-15"), y=-24,
+            text="Saudi NB announcement",
+            showarrow=T,
+            arrowhead=1, ax = -100, ay = -60)
 
 fig
 
@@ -237,23 +263,23 @@ fig
 
 <p class="bottom-three">
      
-  The graph above displays the sentiment predicted for `r format(sum, big.mark=",")` tweets that contain the keyword "Credit Suisse", along with the daily stock price change (in %) of Credit Suisse shares. To predict the sentiment of a tweet, I use a Natural Language Processing model trained on financial texts (FinBERT, @araci2019finbert).
+  The graph above displays the **sentiment** predicted for `r format(sum, big.mark=",")` tweets that contain the **keyword "Credit Suisse"**, along with the **daily stock price change** (in %) of Credit Suisse shares. To predict the sentiment of a tweet, I use a Natural Language Processing model trained on financial texts (FinBERT, @araci2019finbert).
   
   
-  In the plot, the sentiment measure represents the average sentiment per day of all collected tweets. The sentiment is then weighted by the number of tweets collected that day, divided by the total number of tweets. The measure is normalized (mean subtracted and divided by its standard deviation).^[The mean and standard deviation are calculated without observations of March 2023.] Higher values correspond to a more positive sentiment, whereas lower values represent a negative sentiment. For the daily change in stock prices, missing values over the weekend are linearly interpolated to improve the readability of the chart. The correlation between the two series is `r correlation`.
+  In the plot, the sentiment measure represents the **average sentiment per day** of all collected tweets. The sentiment is then weighted by the number of tweets collected that day, divided by the total number of tweets. The measure is normalized (mean subtracted and divided by its standard deviation).^[The mean and standard deviation are calculated without observations of March 2023.] Higher values correspond to a more positive sentiment, whereas lower values represent a negative sentiment. For the daily change in stock prices, missing values over the weekend are linearly interpolated to improve the readability of the chart. The **correlation** between the two series is `r correlation`.
   
 
-A few notes on the negative spikes in sentiment values in the graph and news media reporting around the same time: 
+A few notes on the **negative spikes in sentiment** values in the graph and **news media reporting** around the same time: 
 
-- On September 22nd, 2022, news emerged that Credit Suisse might consider splitting their investment bank (@reuters1) and that they were sounding out investors about a capital hike (@reuters2).
+- **On September 22nd, 2022**, **news emerged** that Credit Suisse **might** consider splitting their investment bank (@reuters1) and that they were sounding out investors about a **capital hike** (@reuters2).
 
-- Around October 2nd, 2022, news emerged that Credit Suisse might be looking to raise capital. At the same time, the price of Credit Default Swaps increased strongly (@cnbc1).
+- **Around October 2nd, 2022**, news emerged that Credit Suisse **might** be looking to **raise capital**. At the same time, the price of Credit Default Swaps increased strongly (@cnbc1).
 
-- Around October 27th, 2022, Credit Suisse confirmed raising capital, announced a job cut, and informed about their new strategy (@cs1, @reuters3).
+- **Around October 27th, 2022**, Credit Suisse **confirmed raising capital**, announced a job cut, and informed about their new strategy (@cs1, @reuters3).
 
-- On November 1st, 2022, S&P downgraded Credit Suisse's credit rating to BBB- (@wsj1).
+- **On November 1st, 2022**, **S&P downgraded Credit Suisse's credit rating** to BBB- (@wsj1).
 
-- On March 15th, 2023, the chairman of Saudi National Bank announced that the bank wouldn't boost its share of the bank (@bloomberg).
+- **On March 15th, 2023**, the chairman of **Saudi National Bank** announced that the bank **wouldn't boost its share of the bank** (@bloomberg).
 
 
 For more information, there is a growing literature that investigates the links between social media on financial markets. See, for example, @goutte2022actions, @broadstock2019social, @antweiler2004all, @sprenger2014tweets.
@@ -263,4 +289,3 @@ For more information, there is a growing literature that investigates the links 
 <br>
 
 **References and Sources**
-
