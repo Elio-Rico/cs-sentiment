@@ -1,0 +1,261 @@
+---
+title: Credit Suisse Twitter Sentiment
+author: 'Elio Bolliger'
+date: '2023-03-21'
+summary: 'In this short project, we analyse tweets from Twitter that contain the keyword "Credit Suisse". We then use a Natural Language Processing model to predict the sentiment of those tweets.'
+slug: []
+categories:
+tags:
+  - Financial Markets
+  - Credit Suisse
+  - NLP
+links:
+- icon: twitter
+  icon_pack: fab
+  name: Follow
+  url: https://twitter.com/BolligerElio
+slides: ""
+math: true
+description: Description for the page
+bibliography: [bibliography.bib]
+editor_options: 
+  chunk_output_type: console
+---
+
+<style>
+  .bottom-three {
+     margin-bottom: 12cm;
+  }
+</style>
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, fig.height = 4, warning = FALSE, out.width = "100%"
+)
+
+if (!require("ggplot2")) {install.packages("ggplot2"); library('ggplot2')}
+if (!require("tidyverse")) {install.packages("tidyverse"); library('tidyverse')}
+if (!require("matrixStats")) {install.packages("matrixStats"); library('matrixStats')}
+if (!require("tidymodels")) {install.packages("tidymodels"); library('tidymodels')}
+if (!require("lme4")) {install.packages("lme4"); library('lme4')}
+if (!require("haven")) {install.packages("haven"); library('haven')}
+if (!require("miceadds")) {install.packages("miceadds"); library('miceadds')}
+if (!require("rmarkdown")) {install.packages("rmarkdown"); library('rmarkdown')}
+if (!require("reshape2")) {install.packages("reshape2"); library('reshape2')}
+if (!require("plotly")) {install.packages("plotly"); library('plotly')}
+if (!require("knitr")) {install.packages("knitr"); library('knitr')}
+if (!require("kableExtra")) {install.packages("kableExtra"); library('kableExtra')}
+if (!require("htmltools")) {install.packages("htmltools"); library('htmltools')}
+if (!require("data.table")) {install.packages("data.table"); library('data.table')}
+if (!require("zoo")) {install.packages("zoo"); library('zoo')}
+theme_set(theme_bw())
+```
+
+
+```{r}
+# Move this css tag outside the chunk to control the width of text
+# on the page.
+# <style type="text/css">
+# .main-container {
+#   max-width: 1000px;
+#   margin-left: auto;
+#   margin-right: auto;
+# }
+# </style>
+
+```
+
+
+
+```{r, include = FALSE}
+
+# load in separately downloaded data:
+
+dat <- fread("/Users/ebollige/Dropbox/3_PhD/Projects/TWITTER_CREDITSUISSE/sentimentdf/tweets_1.csv")
+
+dat1 <- dat %>%
+  dplyr::select(date,sentiment) %>%
+  dplyr::mutate(sn = case_when(sentiment == "negative" ~ -1,
+                                      sentiment == "positive" ~ 1,
+                                      sentiment == "neutral" ~ 0)) %>%
+  dplyr::mutate(date = as.Date(date)) %>%
+  group_by(date) %>%
+  summarise(sn = mean(sn,na.rm = TRUE),
+            n = n())
+
+dat <- fread("/Users/ebollige/Dropbox/3_PhD/Projects/TWITTER_CREDITSUISSE/sentimentdf/tweets_2.csv")
+
+dat2 <- dat %>%
+  dplyr::select(date,sentiment) %>%
+  dplyr::mutate(sn = case_when(sentiment == "negative" ~ -1,
+                                      sentiment == "positive" ~ 1,
+                                      sentiment == "neutral" ~ 0)) %>%
+  dplyr::mutate(date = as.Date(date)) %>%
+  group_by(date) %>%
+  summarise(snupdate = mean(sn,na.rm = TRUE),
+            nupdate = n())
+
+
+dat <- fread("/Users/ebollige/Dropbox/3_PhD/Projects/TWITTER_CREDITSUISSE/sentimentdf/tweets_3.csv")
+
+dat3 <- dat %>%
+  dplyr::select(date,sentiment) %>%
+  dplyr::mutate(sn = case_when(sentiment == "negative" ~ -1,
+                                      sentiment == "positive" ~ 1,
+                                      sentiment == "neutral" ~ 0)) %>%
+  dplyr::mutate(date = as.Date(date)) %>%
+  group_by(date) %>%
+  summarise(sn = mean(sn,na.rm = TRUE),
+            n = n())
+
+# fill gaps october 12 to october 19:
+dat <- fread("/Users/ebollige/Dropbox/3_PhD/Projects/TWITTER_CREDITSUISSE/sentimentdf/tweets_4.csv")
+
+dat4 <- dat %>%
+  dplyr::select(date,sentiment) %>%
+  dplyr::mutate(sn = case_when(sentiment == "negative" ~ -1,
+                                      sentiment == "positive" ~ 1,
+                                      sentiment == "neutral" ~ 0)) %>%
+  dplyr::mutate(date = as.Date(date)) %>%
+  group_by(date) %>%
+  summarise(sn = mean(sn,na.rm = TRUE),
+            n = n()) %>%
+  dplyr::filter(date >= "2022-10-12" & date <= "2022-10-19")
+
+
+
+```
+
+
+```{r, include = FALSE}
+# update data
+dat <- rbind(dat1,dat3, dat4)
+
+# merge data:
+datmerge <- merge(dat,dat2, by=c("date"), all = TRUE)
+datmerge <- datmerge %>%
+  dplyr::mutate(sn = ifelse(is.na(snupdate)== F, snupdate, sn )) %>%
+  dplyr::mutate(n = ifelse(is.na(nupdate)== F, nupdate, n )) %>%
+  dplyr::select(date, sn, n)
+
+
+# add data about stock market prices:
+cs <- fread("/Users/ebollige/Dropbox/3_PhD/Projects/TWITTER_CREDITSUISSE/CSGN_shareprice.csv") %>%
+  dplyr::select(Date, Close) %>%
+  dplyr::rename(date = Date) %>%
+  dplyr::mutate(date = as.Date(date)) %>%
+  arrange(date) %>%
+  dplyr::mutate(gr = (Close - lag(Close))/lag(Close)*100) %>%
+  dplyr::filter(date >= "2021-01-01")
+
+# merge data:
+fdat <- merge(datmerge,cs, all.y = TRUE, all.x = TRUE)
+
+# standardise the sentiment measure and linearly interpolate data for growth rate of stocks
+fdat <-  fdat %>%
+  ungroup() %>%
+  dplyr::mutate(sumobs = sum(n, na.rm = TRUE)) %>%
+  dplyr::mutate(wm = (sn * n)/sumobs ) %>%
+  dplyr::mutate(resmeandat= ifelse(date <= "2023-03-01", wm, NA)) %>%
+  dplyr::mutate(means = mean(resmeandat,na.rm = TRUE)) %>%
+  dplyr::mutate(sds = sd(resmeandat,na.rm = TRUE) ) %>%
+  dplyr::mutate(sentstandard = (wm-means)/sds ) %>%
+  ungroup() %>%
+  arrange(date)  %>%
+    mutate(time=seq(1,n())) %>%
+      mutate(grip=approx(time,gr,time)$y) %>%
+      select(-time)
+
+correlation <- round(cor(fdat$grip,fdat$sentstandard, use="complete.obs"),2)
+correlation
+
+```
+
+
+
+
+
+```{r, out.width="100%"}
+fdat <- fdat %>%
+  dplyr::filter(date >= "2022-03-01")
+
+sum <- sum(fdat$n,na.rm = TRUE)
+
+fig <- plot_ly()
+# Add traces
+fig <- fig %>% add_trace(x = ~fdat$date, y = ~fdat$grip, name = "Credit Suisse Stock Price", mode = "lines+markers", 
+                         type = "scatter", 
+                         marker=list(symbol = 'x',
+                                      size = 3,
+                                      opacity = 0.5, line = 
+                                        list(width = 1, color = "black")),
+                          line = list(color = "steelblue")
+                         )
+
+ay <- list(
+  tickfont = list(color = "firebrick"),
+  overlaying = "y",
+  side = "right",
+  title = "<b>Sentiment</b>")
+
+fig <- fig %>% add_trace(x = ~fdat$date, y = ~fdat$sentstandard, name = "Sentiment on Twitter", yaxis = "y2", mode = "lines+markers", type = "scatter", marker=list(color = "black", symbol = 'triangle-up',
+                                      size = 3,
+                                      opacity = 0.5, line = 
+                                        list(width = 1, color = "black")),
+        line = list(color = "firebrick"))
+
+# Set figure title, x and y-axes titles
+fig <- fig %>% layout(
+  title = "", yaxis2 = ay,
+  xaxis = list(title="Date"),
+  yaxis = list(title="<b>Stock Price, Daily Change (%)</b>")
+)%>%
+  layout(plot_bgcolor='white', 
+         xaxis = list( 
+           zerolinecolor = '#ffff', 
+           zerolinewidth = 2), 
+          yaxis = list(
+            zerolinecolor = '#ffff',
+            zerolinewidth = 2,
+            range=c(-25,25)
+          ),
+        yaxis2 = list(
+            range=c(-5,5)
+            #range=c(-0.01,0.01)
+        ),
+        width = 1000, height = 800, autosize = F) 
+
+
+fig
+
+```
+
+<p class="bottom-three">
+     
+  The graph above displays the sentiment predicted for `r format(sum, big.mark=",")` tweets that contain the keyword "Credit Suisse", along with the daily stock price change (in %) of Credit Suisse shares. To predict the sentiment of a tweet, I use a Natural Language Processing model trained on financial texts (FinBERT, @araci2019finbert).
+  
+  
+  In the plot, the sentiment measure represents the average sentiment per day of all collected tweets. The sentiment is then weighted by the number of tweets collected that day, divided by the total number of tweets. The measure is normalized (mean subtracted and divided by its standard deviation).^[The mean and standard deviation are calculated without observations of March 2023.] To improve the readability of the chart, missing values of daily returns over the weekend are linearly interpolated. Higher values correspond to a more positive sentiment, whereas lower values represent a negative sentiment. The correlation between the two series is `r correlation`.
+  
+
+A few notes on the negative spikes in sentiment values in the graph and news media reporting around the same time: 
+
+- On September 22nd, 2022, news emerged that Credit Suisse might consider splitting their investment bank (@reuters1) and that they were sounding out investors about a capital hike (@reuters2).
+
+- Around October 2nd, 2022, news emerged that Credit Suisse might be looking to raise capital. At the same time, the price of Credit Default Swaps increased strongly (@cnbc1).
+
+- Around October 27th, 2022, Credit Suisse confirmed raising capital, announced a job cut, and informed about their new strategy (@cs1, @reuters3).
+
+- On November 1st, 2022, S&P downgraded Credit Suisse's credit rating to BBB- (@wsj1).
+
+- On March 15th, 2023, the chairman of Saudi National Bank announced that the bank wouldn't boost its share of the bank (@bloomberg).
+
+
+For more information, there is a growing literature that investigates the links between social media on financial markets. See, for example, @goutte2022actions, @broadstock2019social, @antweiler2004all, @sprenger2014tweets.
+
+</p>
+
+<br>
+
+**References and Sources**
+
