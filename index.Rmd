@@ -231,18 +231,18 @@ fig <- fig %>% layout(
         ) 
 
 fig <- fig %>% add_annotations(x=as.Date("2022-09-22"), y=-12,
-            text="Rumours about capital hike",
+            text="Rumours of splitting investment bank",
             showarrow=T,
             arrowhead=1,
-            ax=-100)
+            ax=-120)
 
 fig <- fig %>% add_annotations(x=as.Date("2022-10-02"), y=-20,
-            text="New rumours about capital hike",
+            text="Rumours of additional capital needs",
             showarrow=T,
-            arrowhead=1, ax = -100)
+            arrowhead=1, ax = -120)
 
 fig <- fig %>% add_annotations(x=as.Date("2022-10-27"), y=-24,
-            text="Confirmation capital raise and strategy release",
+            text="Strategy release, job losses",
             showarrow=T,
             arrowhead=1, ax = 100)
 
