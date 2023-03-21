@@ -48,6 +48,8 @@ if (!require("kableExtra")) {install.packages("kableExtra"); library('kableExtra
 if (!require("htmltools")) {install.packages("htmltools"); library('htmltools')}
 if (!require("data.table")) {install.packages("data.table"); library('data.table')}
 if (!require("zoo")) {install.packages("zoo"); library('zoo')}
+if (!require("processx")) install.packages("processx")
+
 theme_set(theme_bw())
 ```
 
@@ -208,7 +210,8 @@ fig <- fig %>% add_trace(x = ~fdat$date, y = ~fdat$sentstandard, name = "Sentime
 fig <- fig %>% layout(
   title = "", yaxis2 = ay,
   xaxis = list(title="Date"),
-  yaxis = list(title="<b>Stock Price, Daily Change (%)</b>")
+  yaxis = list(title="<b>Stock Price, Daily Change (%)</b>"),
+        legend = list(x = 0.1, y = 0.9)
 )%>%
   layout(plot_bgcolor='white', 
          xaxis = list( 
@@ -223,10 +226,12 @@ fig <- fig %>% layout(
             range=c(-5,5)
             #range=c(-0.01,0.01)
         ),
-        width = 1000, height = 800, autosize = F) 
+        width = 1000, height = 800, autosize = F
+        ) 
 
 
 fig
+
 
 ```
 
