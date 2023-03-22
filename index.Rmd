@@ -1,6 +1,6 @@
 ---
 title: Credit Suisse Twitter Sentiment
-author: 'Elio Bolliger'
+author: '[Elio Bolliger](https://www.eliobolliger.com)'
 date: '2023-03-21'
 summary: 'In this short project, we analyse tweets from Twitter that contain the keyword "Credit Suisse". We then use a Natural Language Processing model to predict the sentiment of those tweets.'
 slug: []
@@ -301,6 +301,7 @@ A few notes on the **negative spikes in sentiment** values in figure \@ref(fig:s
 For more information, there is a growing literature that investigates the links between social media on financial markets. See, for example, @goutte2022actions, @broadstock2019social, @antweiler2004all, @sprenger2014tweets.
 
 
+**For more projects and research, have a look at my webpage [here](https://www.eliobolliger.com).**
 
 <br>
 
