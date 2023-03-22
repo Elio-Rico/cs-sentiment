@@ -20,13 +20,10 @@ description: Description for the page
 bibliography: [bibliography.bib]
 editor_options: 
   chunk_output_type: console
+output: bookdown::html_document2
 ---
 
-<style>
-  .bottom-three {
-     margin-bottom: 12cm;
-  }
-</style>
+
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
@@ -174,10 +171,7 @@ correlation
 ```
 
 
-
-
-
-```{r, out.width="100%"}
+```{r, include = FALSE}
 fdat <- fdat %>%
   dplyr::filter(date >= "2022-03-01")
 
@@ -226,8 +220,9 @@ fig <- fig %>% layout(
         yaxis2 = list(
             range=c(-5,5)
             #range=c(-0.01,0.01)
-        ),
-        width = 1000, height = 800, autosize = F
+        )
+        #,
+        #width = 1000, height = 800, autosize = F
         ) 
 
 fig <- fig %>% add_annotations(x=as.Date("2022-09-22"), y=-12,
@@ -256,20 +251,41 @@ fig <- fig %>% add_annotations(x=as.Date("2023-03-15"), y=-24,
             showarrow=T,
             arrowhead=1, ax = -100, ay = -60)
 
-fig
-
-
 ```
 
-<p class="bottom-three">
-     
-  The graph above displays the **sentiment** predicted for `r format(sum, big.mark=",")` tweets that contain the **keyword "Credit Suisse"**, along with the **daily stock price change** (in %) of Credit Suisse shares. To predict the sentiment of a tweet, I use a Natural Language Processing model trained on financial texts (FinBERT, @araci2019finbert).
+
+
+```{r sent, out.width="100%", out.height= "600px", fig.cap="Credit Suisse Twitter Sentiment"}
+fig
+```
+
+
+
+**How has Twitter users’ sentiment towards Credit Suisse evolved over the last few months?**
+In Sunday evening's official press conference about the **merger of UBS and CS**, **FINMA chair Prof. Dr. Marlene Amstad mentioned the potential role social media** might have played in **amplifying negative sentiment** and mistrust of Credit Suisse.
+
+Using a **natural language processing model**, I analyzed **188,638 tweets** mentioning Credit Suisse since March 2022 to **predict their sentiment**. The figure attached to this post shows the average sentiment from daily tweets, weighted by the number of tweets that day. For reference, the figure also plots the daily stock price movement of Credit Suisse.
+
+There are several instances where **negative (and positive) sentiment on Twitter correlates with daily returns**. In particular, figure \@ref(fig:sent) shows a **negative sentiment in the days leading up to the UBS-CS merger** announcement, indicating that **social media sentiment may have played a role** in shaping **public perception of Credit Suisse** during this time. Of course, it should be noted that the **observed correlation between the two variables does not necessarily imply causation**.
+
+Figure \@ref(fig:sent) also shows a **negative peak in sentiment on March 15th**, the time when the chairman of **Saudi National Bank (SNB)** announced that the SNB wouldn’t provide any further **financial help** to Credit Suisse.
+
+The last week highlighted that, **despite Credit Suisse meeting all capital and liquidity requirements**, **banking relies on trust and sentiment**. This sentiment, in turn, can change quickly. The **surge in negative reporting** on social media might have been an **amplifier and aggravated the dynamics** of outflows of client funds.
+
+Last week’s events also underline the **importance for policymakers** to steadily **monitor social media sentiment** and news reporting. In certain cases, **early intervention and committed, targeted communication might help to dampen negative dynamics in the first place, thus allowing policymakers some time to address the underlying root causes in the most appropriate manner**.
+
+
+## Details {-}
+
+Figure \@ref(fig:sent) displays the **sentiment** predicted for `r format(sum, big.mark=",")` tweets that contain the **keyword "Credit Suisse"**, along with the **daily stock price change** (in %) of Credit Suisse shares. To predict the sentiment of a tweet, I use a Natural Language Processing model trained on financial texts (FinBERT, @araci2019finbert).
   
   
   In the plot, the sentiment measure represents the **average sentiment per day** of all collected tweets. The sentiment is then weighted by the number of tweets collected that day, divided by the total number of tweets. The measure is normalized (mean subtracted and divided by its standard deviation).^[The mean and standard deviation are calculated without observations of March 2023.] Higher values correspond to a more positive sentiment, whereas lower values represent a negative sentiment. For the daily change in stock prices, missing values over the weekend are linearly interpolated to improve the readability of the chart. The **correlation** between the two series is `r correlation`.
   
 
-A few notes on the **negative spikes in sentiment** values in the graph and **news media reporting** around the same time: 
+## Negative Spikes and News {-}
+
+A few notes on the **negative spikes in sentiment** values in figure \@ref(fig:sent) and **news media reporting** around the same time: 
 
 - **On September 22nd, 2022**, **news emerged** that Credit Suisse **might** consider splitting their investment bank (@reuters1) and that they were sounding out investors about a **capital hike** (@reuters2).
 
@@ -284,7 +300,7 @@ A few notes on the **negative spikes in sentiment** values in the graph and **ne
 
 For more information, there is a growing literature that investigates the links between social media on financial markets. See, for example, @goutte2022actions, @broadstock2019social, @antweiler2004all, @sprenger2014tweets.
 
-</p>
+
 
 <br>
 
